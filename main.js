@@ -1,10 +1,3 @@
-// imperial units
-const units = 'imperial';
-let temperatureSymbol = units == 'imperial' ? '°F' : '°C';
-
-// create a data structure to hold current weather and 5-day forecast values
-let currentWeather = [];
-let forecastFive = [];
 
 // click event listener for city input and the search button
 document.querySelector('.search').addEventListener('click', function(event) {
@@ -87,12 +80,12 @@ function displayCurrentWeather(data) {
 
   // Create a template string for the current weather
   const template = `
-    <div class="col-md-3 current-weather">
+    <div class="col-3">
       <p class="fs-3 fw-bold">${city}</p>
       <p class="fs-3 fw-bold">${Math.round(temp)}&deg;F</p>
       <p class="fs-4 fst-italic text-capitalize">${description}</p>
     </div>
-    <div class="col-md-3">
+    <div class="col-3">
       <img
         src="https://openweathermap.org/img/wn/${icon}@2x.png"
         alt="weather icon"
@@ -117,12 +110,12 @@ function displayForecast(data) {
     const icon = item.weather[0].icon;
 
     return `
-      <div class="card border-dark border-1 rounded mt-3 align-items-center" style="width: 10rem">
-        <p class="fs-3 fw-bold">${date}</p>
+      <div class="d-grid col mt-3 mb-5 align-items-center bg-light border">
+        <p class="fw-bold">${date}</p>
         <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="weather icon" />
-        <p class="fs-3">${Math.round(temp)}&deg;F</p>
-        <p class="fs-4 fst-italic text-capitalize">${description}</p>
-      </div>
+        <p class="fw-bold">${Math.round(temp)}&deg;F</p>
+        <p class="fst-italic text-capitalize">${description}</p>
+      </div> 
     `;
   }).join('');
 
@@ -149,25 +142,3 @@ function convertToLocalTime(dt) {
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${period}`;
 };
-
-/**
- * Creates a weather description element based on the provided weather data.
- * @param {Object} weatherData - The weather data object containing main weather information and timestamp.
- * @param {Object} weatherData.main - The main weather information object.
- * @param {number} weatherData.main.temp - The temperature in Kelvin.
- * @param {string} weatherData.dt - The Unix timestamp of the weather data.
- * @return {HTMLElement} The created weather description element.
-*/
-// function createWeatherDescription(weatherData) {
-//   const { main, dt } = weatherData;
-
-//   const description = document.createElement('div');
-//   const convertedDateAndTime = convertToLocalTime(dt);
-
-//   // '2023-11-07 07:00:00 PM'
-//   description.innerHTML = `
-//     <div class='weather_description'>${main.temp} ${temperatureSymbol} - ${convertedDateAndTime.substring(10)} - ${convertedDateAndTime.substring(5, 10)}</div>
-//   `;
-
-//   return description;
-// };

@@ -16,39 +16,37 @@
     <div class="container-fluid justify-content-center align-items-center">
       <div class="row">
         <div class="col-md-6 offset-md-3">
-          <div class="page-header text-center">
+          <div class="page-header text-center mt-5">
             <h1>Weather App Project</h1>
             <hr />
           </div>
 
-          <!-- form input and button -->
+          <!-- form input field and search button -->
           <div id="form-group">
-            <div class="mb-3">
-              <input
-                type="text"
-                class="form-control"
-                id="city-input"
-                placeholder="Enter City Here"
-              />
-            </div>
-
             <form class="search-form">
-              <button type="submit" class="btn btn-primary search">
-                Get Weather
-              </button>
+              <div class="input-group mb-4 mt-4">
+                <input
+                  type="text"
+                  class="form-control"
+                  id="city-input"
+                  placeholder="Enter City Here"
+                />
+                <button type="submit" class="btn btn-primary search">
+                  Get Weather
+                </button>
+              </div>
             </form>
           </div>
+
           <hr />
 
           <!-- row for current weather -->
           <div
-            class="current-weather row align-items-center justify-content-center mt-2"
+            class="current-weather row d-flex align-items-center justify-content-center"
           ></div>
 
-          <!-- 5 day forecast -->
-          <div
-            class="container-fluid align-items-center justify-content-center"
-          >
+          <!-- 5 day forecast container and row -->
+          <div class="container-fluid">
             <div class="forecast row"></div>
           </div>
         </div>

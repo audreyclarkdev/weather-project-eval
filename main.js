@@ -80,7 +80,7 @@ function displayCurrentWeather(data) {
 
   // Create a template string for the current weather
   const template = `
-    <div class="col-3">
+    <div class="col-3 mt-3">
       <p class="fs-3 fw-bold">${city}</p>
       <p class="fs-3 fw-bold">${Math.round(temp)}&deg;F</p>
       <p class="fs-4 fst-italic text-capitalize">${description}</p>
@@ -96,25 +96,38 @@ function displayCurrentWeather(data) {
     document.querySelector('.current-weather').insertAdjacentHTML('beforeend', template);
 };
 
-/**
- * Displays the forecast information for the next 5 days.
- * @param {Object} data - The forecast data containing the list of forecast items.
- * @return {void} This function does not return anything.
- */
+
 function displayForecast(data) {
+  const forecastList = data.list;
+
+  // Create a set to keep track of the dates we have added to the forecast
+  const addedDates = new Set();
+
+  // Filter the forecast list to get the first entry for each day
+  const dailyForecasts = forecastList.filter(item => { 
+    const date = new Date(item.dt_text);
+    const dateString = date.toLocaleDateString('en-US', { weekday: 'long' });
+
+    if (!addedDates.has(dateString)) {
+      addedDates.add(dateString);
+      return true;
+    }
+    return false;
+  }).slice(0,5); //take only the first 5 days
+
   // Iterate over the forecast data and create HTML for each day
-  const forecastHtml = data.list.slice(0, 5).map(item => {
+  const forecastHtml = dailyForecasts.map(item => {
     const date = new Date(item.dt_txt).toLocaleDateString('en-US', { weekday: 'long' });
     const temp = item.main.temp;
     const description = item.weather[0].description;
     const icon = item.weather[0].icon;
 
     return `
-      <div class="d-grid col mt-3 mb-5 align-items-center bg-light border">
-        <p class="fw-bold">${date}</p>
+      <div class="d-grid col mt-3 mb-5 bg-light border">
+        <p class="fs-5 fw-bold">${date}</p>
         <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="weather icon" />
-        <p class="fw-bold">${Math.round(temp)}&deg;F</p>
-        <p class="fst-italic text-capitalize">${description}</p>
+        <p class="fs-5 fw-bold">${Math.round(temp)}&deg;F</p>
+        <p class="fs-5 fst-italic text-capitalize">${description}</p>
       </div> 
     `;
   }).join('');
@@ -137,7 +150,7 @@ function convertToLocalTime(dt) {
   const day = String(date.getDate()).padStart(2, '0');
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
   const period = date.getHours() < 12 ? 'AM' : 'PM';
 
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${period}`;

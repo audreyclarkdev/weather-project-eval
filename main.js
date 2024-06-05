@@ -1,11 +1,12 @@
+const cityInput = document.querySelector('#city-input');
+const currentWeatherContainer = document.querySelector('.current-weather');
+const forecastContainer = document.querySelector('.forecast');
 
 // click event listener for city input and the search button
 document.querySelector('.search').addEventListener('click', function(event) {
   event.preventDefault();
 
-  const cityInput = document.querySelector('#city-input');
   const city = cityInput.value;
-  
   if (city !== '') {
     getWeather(city);
 
@@ -27,11 +28,7 @@ document.querySelector('.search').addEventListener('click', function(event) {
  */
 async function fetchApiData(url){
   try {
-    const response = 
-    await fetch(url, 
-      {
-        method: 'GET', dataType: 'json'
-      });
+    const response = await fetch(url, { method: 'GET', dataType: 'json' });
     const data = await response.json();
 
     if (response.ok) {
@@ -47,6 +44,13 @@ async function fetchApiData(url){
   }
 };
 
+/**
+ * Fetches weather data for a given city using the OpenWeatherMap API.
+ *
+ * @param {string} city - The name of the city to fetch weather data for.
+ * @return {Promise<void>} A promise that resolves when the weather data has been fetched and displayed.
+ * Rejects with an error if there was an issue fetching the data.
+ */
 async function getWeather(city) { 
   const apiKey = '3a16b1625fdf1f83be7f01c3a15bd5f0';
   const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=imperial`;
@@ -58,28 +62,30 @@ async function getWeather(city) {
     const { lon, lat } = weatherData.coord;
     const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=imperial`;
     const forecastData = await fetchApiData(forecastUrl);
-    
-    console.log(weatherData);
-    console.log(forecastData);
 
     displayCurrentWeather(weatherData);
-    displayForecast(forecastData);
+    displayForecast(processForecastData(forecastData.list));
   }
   catch(error) {
     console.error('Error fetching weather data:', error);
   }
 };
 
-// Function to display current weather information
+/**
+ * Displays the current weather information on the page.
+ *
+ * @param {Object} data - The weather data object containing the current weather information.
+ * @return {void} This function does not return anything.
+ */
 function displayCurrentWeather(data) {
-  document.querySelector('.current-weather').replaceChildren();
-  document.querySelector('.forecast').replaceChildren();
+  currentWeatherContainer.replaceChildren();
+  forecastContainer.replaceChildren();
 
    // Destructure the necessary data
   const { name: city, main: {temp}, weather: [{description, icon}] } = data;
 
   // Create a template string for the current weather
-  const template = `
+  const currentWeatherTemplate = `
     <div class="col-3 mt-3">
       <p class="fs-3 fw-bold">${city}</p>
       <p class="fs-3 fw-bold">${Math.round(temp)}&deg;F</p>
@@ -93,65 +99,72 @@ function displayCurrentWeather(data) {
     </div>
     ` 
     // Insert the template into the DOM
-    document.querySelector('.current-weather').insertAdjacentHTML('beforeend', template);
+    currentWeatherContainer.insertAdjacentHTML('beforeend', currentWeatherTemplate);
 };
 
+/**
+ * Processes the forecast data to calculate the average temperature and other information for each day.
+ *
+ * @param {Array} data - An array of objects containing the forecast data.
+ * @return {Array} An array of objects containing the processed forecast data for the next 5 days.
+ */
+function processForecastData(data) {
+  const dailyData = {};
 
-function displayForecast(data) {
-  const forecastList = data.list;
-
-  // Create a set to keep track of the dates we have added to the forecast
-  const addedDates = new Set();
-
-  // Filter the forecast list to get the first entry for each day
-  const dailyForecasts = forecastList.filter(item => { 
-    const date = new Date(item.dt_text);
-    const dateString = date.toLocaleDateString('en-US', { weekday: 'long' });
-
-    if (!addedDates.has(dateString)) {
-      addedDates.add(dateString);
-      return true;
-    }
-    return false;
-  }).slice(0,5); //take only the first 5 days
-
-  // Iterate over the forecast data and create HTML for each day
-  const forecastHtml = dailyForecasts.map(item => {
-    const date = new Date(item.dt_txt).toLocaleDateString('en-US', { weekday: 'long' });
+  data.forEach(item => {
+    const date = new Date(item.dt * 1000);
+    const day = date.toLocaleDateString('en-US', { weekday: 'long' });
     const temp = item.main.temp;
-    const description = item.weather[0].description;
     const icon = item.weather[0].icon;
+    const description = item.weather[0].description;
 
-    return `
-      <div class="d-grid col mt-3 mb-5 bg-light border">
-        <p class="fs-5 fw-bold">${date}</p>
-        <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="weather icon" />
-        <p class="fs-5 fw-bold">${Math.round(temp)}&deg;F</p>
-        <p class="fs-5 fst-italic text-capitalize">${description}</p>
-      </div> 
-    `;
-  }).join('');
+    if (!dailyData[day]) {
+      dailyData[day] = {
+        temps: [],
+        icons: [],
+        descriptions: []
+      };
+    }
 
-  // Insert the forecast HTML into the DOM
-  document.querySelector('.forecast').innerHTML = forecastHtml;
+    dailyData[day].temps.push(temp);
+    dailyData[day].icons.push(icon);
+    dailyData[day].descriptions.push(description);
+  });
+
+  const result = [];
+  for (const day in dailyData) {
+    const temps = dailyData[day].temps;
+    const avgTemp = temps.reduce((sum, t) => sum + t, 0) / temps.length;
+    const icon = dailyData[day].icons[0];
+    const description = dailyData[day].descriptions[0];
+
+    result.push({
+      day,
+      avgTemp: avgTemp.toFixed(1),
+      icon,
+      description
+    });
+  }
+
+  return result.slice(0, 5); // Return only the next 5 days
 };
 
 
 /**
- * Converts a Unix timestamp to the local time zone and returns a formatted string.
- * @param {number} dt - The Unix timestamp to convert.
- * @return {string} The formatted date and time string in the format: YYYY-MM-DD hh:mm:ss AM/PM.
+ * Displays the forecast information for the next 5 days.
+ * @param {Object} data - The forecast data containing the list of forecast items.
+ * @return {void} This function does not return anything.
  */
-function convertToLocalTime(dt) {
-  const date = new Date(dt * 1000);
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based so add 1
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  const seconds = String(date.getSeconds()).padStart(2, '0');
-  const period = date.getHours() < 12 ? 'AM' : 'PM';
-
-  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${period}`;
+function displayForecast(data) {
+  data.forEach(dayData => {
+    const forecastTemplate = `
+      <div class="d-grid col mt-5 mb-5 bg-transparent border border-secondary shadow-sm">
+        <p class="fs-5 fw-bold">${dayData.day}</p>
+        <img src="https://openweathermap.org/img/wn/${dayData.icon}@2x.png" alt="weather icon" />
+        <p class="fs-5 fw-bold">${Math.round(dayData.avgTemp)}&deg;F</p>
+        <p class="fs-5 fst-italic text-capitalize">${dayData.description}</p>
+      </div> 
+    `;
+    forecastContainer.insertAdjacentHTML('beforeend', forecastTemplate);
+  })
 };

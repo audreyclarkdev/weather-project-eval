@@ -1,6 +1,6 @@
 ## Weather Project using Open Weather Map's API
 
-## View here: https://audreyclarkdev.github.io/weather-project-eval/
+### View here: https://audreyclarkdev.github.io/weather-project-eval/
 
 This project has been created by a student at Parsity, an online software engineering course. The work in this repository is wholly of the student based on a sample starter project that can be accessed by looking at the repository that this project forks.
 
